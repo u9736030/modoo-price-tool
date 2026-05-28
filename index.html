@@ -3,256 +3,810 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="robots" content="noindex, nofollow">
-<title>Modoo 價格工具</title>
+<title>Modoo 價格系統</title>
 <style>
-/* --- 密碼遮罩樣式 --- */
-#auth-overlay {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: #f7f6f3; z-index: 9999; display: flex;
-    align-items: center; justify-content: center; flex-direction: column;
-    font-family: sans-serif;
-}
-#auth-overlay input { padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px; width: 200px; }
-#auth-overlay button { padding: 10px 20px; cursor: pointer; background: #2a5caa; color: white; border: none; border-radius: 4px; }
-
-/* --- 你的原始 CSS --- */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#f7f6f3;--surface:#fff;--surface2:#f1efea;--surface3:#e8e5de;
-  --border:#e2dfd7;--border2:#ccc9c0;--border3:#b0ad a6;
+  --bg:#f7f6f3;--surface:#fff;--surface2:#f1efea;--border:#e2dfd7;--border2:#ccc9c0;
   --text:#1a1917;--text2:#6b6860;--text3:#9e9c96;
   --accent:#2a5caa;--accent-bg:#eef3fb;--accent-border:#b8cde8;--accent-text:#1a3f7a;
-  --accent2:#c17d2a;--accent2-bg:#fdf4e7;--accent2-border:#f0d498;--accent2-text:#7a4e0a;
-  --green:#1a7a3f;--green-bg:#edf7f1;--green-border:#a8ddb9;--green-text:#0d4f28;
   --warn-bg:#fff8ec;--warn-border:#f5d98a;--warn-text:#7a5500;
   --danger-bg:#fef2f2;--danger-border:#f5a8a8;--danger-text:#8b1a1a;
-  --r:8px;--rl:12px;
+  --green-bg:#f0faf4;--green-border:#86d9a8;--green-text:#1a5c36;
+  --radius:8px;--radius-lg:12px;
 }
-body{font-family:-apple-system,"Noto Sans TC","PingFang TC",sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.6;min-height:100vh}
-nav{background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
-.nav-inner{max-width:960px;margin:0 auto;padding:0 1.5rem;display:flex;align-items:center;gap:2rem}
-.nav-brand{font-size:15px;font-weight:600;padding:1rem 0;color:var(--text);white-space:nowrap}
-.nav-tabs{display:flex;gap:0}
-.nav-tab{padding:.85rem 1.25rem;font-size:14px;font-weight:500;color:var(--text2);border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;font-family:inherit;white-space:nowrap}
-.nav-tab:hover{color:var(--text)}
-.nav-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
-.page{display:none;max-width:960px;margin:0 auto;padding:2rem 1.5rem 4rem}
-.page.active{display:block}
+body{font-family:-apple-system,"Noto Sans TC","PingFang TC",sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:15px;line-height:1.6}
+
+/* ── Tabs ── */
+.tab-bar{display:flex;background:var(--surface);border-bottom:1px solid var(--border);padding:0 1.5rem;position:sticky;top:0;z-index:100}
+.tab-btn{padding:14px 20px;font-size:14px;font-weight:500;border:none;background:none;cursor:pointer;color:var(--text2);border-bottom:2px solid transparent;font-family:inherit;transition:color .15s,border-color .15s}
+.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab-btn:hover{color:var(--text)}
+.tab-content{display:none}.tab-content.active{display:block}
+
+/* ── Layout ── */
+.app{max-width:980px;margin:0 auto;padding:2rem 1.5rem 4rem}
 .section-label{font-size:11px;font-weight:600;letter-spacing:.1em;color:var(--text3);text-transform:uppercase;margin-bottom:10px}
-hr{border:none;border-top:1px solid var(--border);margin:1.75rem 0}
+
+/* ── Cat tabs ── */
 .cat-tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
 .cat-tab{padding:5px 14px;border:1px solid var(--border);border-radius:20px;font-size:13px;cursor:pointer;background:var(--surface);color:var(--text2);transition:all .15s;font-family:inherit}
 .cat-tab:hover{border-color:var(--border2);color:var(--text)}
 .cat-tab.active{background:var(--accent-bg);border-color:var(--accent-border);color:var(--accent-text);font-weight:500}
+
+/* ── Product grid ── */
 .product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:8px;margin-bottom:2rem}
-.product-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:12px;cursor:default;transition:border-color .15s,background .15s;user-select:none}
+.product-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px;cursor:pointer;transition:border-color .15s;user-select:none}
 .product-card:hover{border-color:var(--border2)}
 .product-card.selected{border:2px solid var(--accent);background:var(--accent-bg)}
-.pcat{font-size:11px;color:var(--text3);margin-bottom:3px}
-.pname{font-size:13px;font-weight:500;color:var(--text)}
+.product-card .pcat{font-size:11px;color:var(--text3);margin-bottom:3px}
+.product-card .pname{font-size:13px;font-weight:500;color:var(--text)}
 .product-card.selected .pname{color:var(--accent-text)}
-.pprice{font-size:12px;color:var(--text3);margin-top:5px}
+.product-card .pprice{font-size:12px;color:var(--text3);margin-top:5px}
 .product-card.selected .pprice{color:var(--accent)}
 .qty-row{display:flex;align-items:center;gap:7px;margin-top:8px}
 .qty-btn{width:24px;height:24px;border:1px solid var(--border2);border-radius:4px;background:var(--surface);color:var(--text);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;font-family:inherit;transition:background .1s}
 .qty-btn:hover{background:var(--bg)}
 .qty-val{min-width:18px;text-align:center;font-size:13px;font-weight:600}
-.selected-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);overflow:hidden;margin-bottom:1.5rem}
+
+/* ── Selected panel ── */
+hr{border:none;border-top:1px solid var(--border);margin:1.75rem 0}
+.selected-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:1.5rem}
 .sel-item{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--border);font-size:13px;gap:8px}
 .sel-item:last-child{border-bottom:none}
 .sel-name{font-weight:500}
-.remove-btn{background:none;border:none;cursor:pointer;color:var(--text3);font-size:18px;line-height:1;padding:2px 6px;border-radius:4px;font-family:inherit;transition:color .1s,background .1s}
+.sel-info{font-size:12px;color:var(--text2)}
+.remove-btn{background:none;border:none;cursor:pointer;color:var(--text3);font-size:18px;line-height:1;padding:2px 6px;border-radius:4px;transition:color .1s,background .1s;font-family:inherit}
 .remove-btn:hover{color:#c0392b;background:var(--danger-bg)}
-.disc-panel{background:var(--surface2);border:1px solid var(--border);border-radius:var(--rl);padding:1.25rem 1.5rem;margin-bottom:1.25rem}
-.disc-grid{display:flex;flex-wrap:wrap;gap:20px;align-items:flex-end}
+
+/* ── Discount panel ── */
+.discount-panel{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.25rem 1.5rem;margin-bottom:1.25rem;display:flex;flex-wrap:wrap;gap:20px;align-items:flex-end}
 .disc-group{display:flex;flex-direction:column;gap:5px}
 .disc-label{font-size:12px;color:var(--text2);font-weight:500}
-.disc-input{width:120px;padding:7px 10px;border:1px solid var(--border2);border-radius:var(--r);font-size:14px;background:var(--surface);color:var(--text);font-family:inherit;transition:border-color .15s}
+.disc-input{width:120px;padding:7px 10px;border:1px solid var(--border2);border-radius:var(--radius);font-size:13px;background:var(--surface);color:var(--text);font-family:inherit;transition:border-color .15s}
 .disc-input:focus{outline:none;border-color:var(--accent)}
-.disc-sep{width:1px;height:40px;background:var(--border2);align-self:flex-end;margin:0 4px}
-.disc-section-title{font-size:11px;font-weight:600;letter-spacing:.06em;color:var(--text3);text-transform:uppercase;margin-bottom:8px}
-.disc-block{padding:0 4px}
+.disc-hint{font-size:11px;color:var(--text3);margin-top:2px}
+
+/* ── Warning box ── */
+.warning-box{display:flex;align-items:flex-start;gap:10px;padding:12px 16px;border-radius:var(--radius);margin-bottom:1.25rem;font-size:13px;line-height:1.5}
+.warning-box.warn{background:var(--warn-bg);border:1px solid var(--warn-border);color:var(--warn-text)}
+.warning-box.danger{background:var(--danger-bg);border:1px solid var(--danger-border);color:var(--danger-text)}
+
+/* ── Results grid ── */
 .results{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:2rem}
-.result-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px}
-.result-card.r-sale{background:var(--accent-bg);border:2px solid var(--accent-border)}
-.result-card.r-act1{background:var(--green-bg);border:1px solid var(--green-border)}
-.result-card.r-act2{background:var(--accent2-bg);border:1px solid var(--accent2-border)}
-.result-card.r-warn-alert{background:var(--warn-bg);border:1px solid var(--warn-border)}
-.rl{font-size:11px;font-weight:600;letter-spacing:.05em;color:var(--text3);margin-bottom:5px}
-.r-sale .rl{color:var(--accent)}
-.r-act1 .rl{color:var(--green)}
-.r-act2 .rl{color:var(--accent2)}
-.r-warn-alert .rl{color:var(--warn-text)}
-.rv{font-size:20px;font-weight:600;color:var(--text);letter-spacing:-.02em}
-.r-sale .rv{color:var(--accent-text)}
-.r-act1 .rv{color:var(--green-text)}
-.r-act2 .rv{color:var(--accent2-text)}
-.r-warn-alert .rv{color:var(--warn-text)}
-.rs{font-size:11px;color:var(--text3);margin-top:3px}
-.r-sale .rs{color:var(--accent);opacity:.8}
-.r-act1 .rs{color:var(--green);opacity:.8}
-.r-act2 .rs{color:var(--accent2);opacity:.8}
-.warn-box{display:flex;align-items:flex-start;gap:10px;padding:12px 16px;border-radius:var(--r);margin-bottom:1.25rem;font-size:13px;line-height:1.5}
-.warn-box.warn{background:var(--warn-bg);border:1px solid var(--warn-border);color:var(--warn-text)}
-.warn-box.danger{background:var(--danger-bg);border:1px solid var(--danger-border);color:var(--danger-text)}
-.query-layout{display:grid;grid-template-columns:220px 1fr;gap:1.5rem;margin-top:1rem}
-.filter-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:1rem;height:fit-content;position:sticky;top:72px}
-.filter-title{font-size:12px;font-weight:600;letter-spacing:.06em;color:var(--text3);text-transform:uppercase;margin-bottom:10px}
-.filter-btn{display:block;width:100%;text-align:left;padding:7px 10px;border:none;border-radius:var(--r);background:none;font-size:13px;color:var(--text2);cursor:pointer;font-family:inherit;transition:background .1s,color .1s}
-.filter-btn:hover{background:var(--surface2);color:var(--text)}
-.filter-btn.active{background:var(--accent-bg);color:var(--accent-text);font-weight:500}
-.filter-divider{border:none;border-top:1px solid var(--border);margin:8px 0}
-.combo-list{display:flex;flex-direction:column;gap:10px}
-.combo-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);overflow:hidden;transition:border-color .15s}
-.combo-card:hover{border-color:var(--border2)}
-.combo-header{padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer}
-.combo-name{font-size:14px;font-weight:500}
-.combo-cat-badge{font-size:11px;padding:3px 9px;border-radius:12px;background:var(--surface2);color:var(--text2);white-space:nowrap}
-.combo-prices{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding:0 16px 14px}
-.cp{display:flex;flex-direction:column;gap:1px}
-.cp-label{font-size:10px;font-weight:600;letter-spacing:.06em;color:var(--text3);text-transform:uppercase}
-.cp-val{font-size:15px;font-weight:500;color:var(--text)}
-.cp-val.na{color:var(--text3);font-weight:400;font-style:italic}
-.cp-val.hilight{color:var(--accent-text)}
-.cp-val.act1{color:var(--green-text)}
-.cp-val.act2{color:var(--accent2-text)}
-.combo-items{padding:8px 16px 12px;border-top:1px solid var(--border);font-size:12px;color:var(--text2)}
-.combo-items span{display:inline-block;margin:2px 4px 2px 0;padding:2px 8px;background:var(--surface2);border-radius:12px}
-.match-badge{font-size:11px;padding:3px 9px;border-radius:12px;margin-left:8px}
-.match-full{background:#edf7f1;color:#0d4f28}
-.match-partial{background:#fff8ec;color:#7a5500}
-.smart-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:1.25rem 1.5rem;margin-bottom:1.5rem}
-.smart-title{font-size:14px;font-weight:500;margin-bottom:1rem;display:flex;align-items:center;gap:8px}
-.smart-badge{font-size:11px;padding:2px 8px;border-radius:12px;background:var(--accent-bg);color:var(--accent-text)}
-.smart-empty{font-size:13px;color:var(--text3);padding:1rem 0}
-.match-result{border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:8px}
-.match-result-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--surface2)}
-.match-result-name{font-size:13px;font-weight:500}
-.match-result-prices{display:flex;gap:12px;padding:10px 14px;font-size:13px;flex-wrap:wrap}
-.mrp{display:flex;flex-direction:column;gap:1px}
-.mrp-label{font-size:10px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.05em}
-.mrp-val{font-size:14px;font-weight:500;color:var(--text)}
-.mrp-val.hilight{color:var(--accent-text)}
-.mrp-val.act1c{color:var(--green-text)}
-.mrp-val.act2c{color:var(--accent2-text)}
-.mrp-val.na{color:var(--text3);font-style:italic;font-weight:400}
-.empty-state{text-align:center;padding:3rem;color:var(--text3);font-size:14px}
-@media(max-width:640px){.query-layout{grid-template-columns:1fr}.filter-panel{position:static}.results{grid-template-columns:1fr 1fr}.nav-brand{display:none}}
+.result-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
+.result-card.primary{background:var(--accent-bg);border:2px solid var(--accent-border)}
+.result-card.alert{background:var(--warn-bg);border:1px solid var(--warn-border)}
+.result-card.danger{background:var(--danger-bg);border:1px solid var(--danger-border)}
+.result-label{font-size:11px;font-weight:600;letter-spacing:.05em;color:var(--text3);margin-bottom:5px}
+.result-card.primary .result-label{color:var(--accent)}
+.result-card.alert .result-label{color:var(--warn-text)}
+.result-card.danger .result-label{color:var(--danger-text)}
+.result-value{font-size:20px;font-weight:600;color:var(--text);letter-spacing:-.02em}
+.result-card.primary .result-value{color:var(--accent-text)}
+.result-card.alert .result-value{color:var(--warn-text)}
+.result-card.danger .result-value{color:var(--danger-text)}
+.result-sub{font-size:11px;color:var(--text3);margin-top:3px}
+.result-card.primary .result-sub{color:var(--accent);opacity:.8}
+
+/* ── Query tab ── */
+.query-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.search-input{flex:1;min-width:200px;padding:9px 14px;border:1px solid var(--border2);border-radius:var(--radius);font-size:14px;background:var(--surface);color:var(--text);font-family:inherit}
+.search-input:focus{outline:none;border-color:var(--accent)}
+.clear-btn{padding:9px 16px;border:1px solid var(--border2);border-radius:var(--radius);background:var(--surface);color:var(--text2);font-size:13px;cursor:pointer;font-family:inherit;white-space:nowrap;transition:all .15s}
+.clear-btn:hover{background:var(--danger-bg);border-color:var(--danger-border);color:var(--danger-text)}
+
+/* ── Combo table ── */
+.combo-table-wrap{overflow-x:auto;border-radius:var(--radius-lg);border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:13px;background:var(--surface)}
+thead tr{background:var(--surface2)}
+th{padding:10px 12px;text-align:left;font-size:11px;font-weight:600;letter-spacing:.06em;color:var(--text3);border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:9px 12px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--surface2)}
+.badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:500}
+.badge-blue{background:var(--accent-bg);color:var(--accent-text)}
+.na{color:var(--text3);font-size:12px}
+.tag-calc{font-size:10px;color:var(--text3);margin-left:3px}
+.tag-pending{font-size:11px;color:var(--warn-text)}
+.no-data{text-align:center;padding:3rem;color:var(--text3);font-size:14px}
+
+/* ── Match section ── */
+.match-bar{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.25rem 1.5rem;margin-bottom:1.5rem}
+.match-products{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+.match-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;align-items:center}
+.btn-primary{padding:8px 18px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius);font-size:13px;cursor:pointer;font-family:inherit;transition:opacity .15s}
+.btn-primary:hover{opacity:.85}
+.btn-secondary{padding:8px 16px;background:var(--surface);color:var(--text2);border:1px solid var(--border2);border-radius:var(--radius);font-size:13px;cursor:pointer;font-family:inherit;transition:all .15s}
+.btn-secondary:hover{border-color:var(--border2);color:var(--text)}
+.match-selected-summary{font-size:12px;color:var(--text2)}
+.match-result-box{background:var(--green-bg);border:1px solid var(--green-border);border-radius:var(--radius-lg);padding:1rem 1.25rem;margin-bottom:10px}
+.match-result-title{font-size:13px;font-weight:600;color:var(--green-text);margin-bottom:4px}
+.match-pct{font-size:12px;color:var(--green-text);background:var(--surface);padding:2px 8px;border-radius:10px;border:1px solid var(--green-border);margin-left:6px}
+.match-parsed{font-size:11px;color:var(--green-text);opacity:.75;margin-bottom:6px}
+.match-prices{display:flex;flex-wrap:wrap;gap:14px;font-size:13px}
+.no-match{background:var(--warn-bg);border:1px solid var(--warn-border);border-radius:var(--radius);padding:12px 16px;font-size:13px;color:var(--warn-text);margin-bottom:1rem}
+
+@media(max-width:560px){
+  .app{padding:1.25rem 1rem 3rem}
+  .product-grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}
+  .results{grid-template-columns:1fr 1fr}
+  .discount-panel{gap:14px}
+  .tab-btn{padding:12px 12px;font-size:13px}
+}
 </style>
 </head>
 <body>
 
-<div id="auth-overlay">
-  <h3>Modoo 價格工具</h3>
-  <input type="password" id="passwordInput" placeholder="請輸入存取密碼">
-  <button onclick="checkPassword()">進入工具</button>
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab('calc',this)">🧮 價格計算機</button>
+  <button class="tab-btn" onclick="switchTab('products',this)">🏷️ 單品查詢</button>
+  <button class="tab-btn" onclick="switchTab('query',this)">📋 組合查詢</button>
 </div>
 
-<nav>
-  <div class="nav-inner">
-    <div class="nav-brand">Modoo 價格工具</div>
-    <div class="nav-tabs">
-      <button class="nav-tab active" onclick="showPage('calc')">計算機</button>
-      <button class="nav-tab" onclick="showPage('query')">組合查詢</button>
-    </div>
-  </div>
-</nav>
-
-<div id="page-calc" class="page active">
+<!-- ══════════ TAB 1: 計算機 ══════════ -->
+<div id="tab-calc" class="tab-content active">
+<div class="app">
   <div class="section-label">選擇單品</div>
   <div class="cat-tabs" id="calcCatTabs"></div>
   <div class="product-grid" id="productGrid"></div>
+
   <div id="calcSelectedSection" style="display:none">
     <hr>
     <div class="section-label">已選商品</div>
     <div class="selected-panel" id="selectedList"></div>
-    <div class="disc-panel">
-      <div class="disc-block">
-        <div class="disc-section-title">組合折扣設定</div>
-        <div class="disc-grid">
-          <div class="disc-group"><label class="disc-label" for="saleDisc">售價折扣 (%)</label><input class="disc-input" type="number" id="saleDisc" value="90" min="1" max="100" step="0.5"></div>
-          <div class="disc-group"><label class="disc-label" for="groupDisc">團購折扣 (%)</label><input class="disc-input" type="number" id="groupDisc" value="79" min="1" max="100" step="0.5"></div>
-          <div class="disc-group"><label class="disc-label" for="minDisc">最低價折扣 (%)</label><input class="disc-input" type="number" id="minDisc" value="90" min="1" max="100" step="0.5"></div>
-        </div>
+
+    <div class="section-label">手動覆蓋（選填）</div>
+    <div class="discount-panel">
+      <div class="disc-group">
+        <label class="disc-label" for="actOverride">活動價</label>
+        <input class="disc-input" type="number" id="actOverride" placeholder="預設平台售價×95%">
+        <span class="disc-hint">空白＝自動計算</span>
       </div>
-      <hr style="margin:1rem 0">
-      <div class="disc-block">
-        <div class="disc-section-title">活動價</div>
-        <div class="disc-grid">
-          <div class="disc-group"><label class="disc-label" for="act1Disc">一般活動價折扣 (%)</label><input class="disc-input" type="number" id="act1Disc" value="95" min="1" max="100" step="0.5"></div>
-          <div class="disc-group"><label class="disc-label" for="act1Manual">或手動輸入</label><input class="disc-input" type="number" id="act1Manual" placeholder="覆蓋" min="0"></div>
-          <div class="disc-sep"></div>
-          <div class="disc-group"><label class="disc-label" for="act2Disc">熱銷組活動價折扣 (%)</label><input class="disc-input" type="number" id="act2Disc" value="80" min="1" max="100" step="0.5"></div>
-          <div class="disc-group"><label class="disc-label" for="act2Manual">或手動輸入</label><input class="disc-input" type="number" id="act2Manual" placeholder="覆蓋" min="0"></div>
-        </div>
+      <div class="disc-group">
+        <label class="disc-label" for="hotOverride">熱銷組活動價</label>
+        <input class="disc-input" type="number" id="hotOverride" placeholder="預設平台售價×90%">
+        <span class="disc-hint">空白＝自動計算</span>
       </div>
     </div>
-    <div id="warnBox" style="display:none"></div>
+
+    <div id="warningBox" style="display:none"></div>
     <div class="section-label">計算結果</div>
     <div class="results" id="results"></div>
   </div>
 </div>
+</div>
 
-<div id="page-query" class="page">
-  <div class="smart-section">
-    <div class="smart-title">智慧比對 <span class="smart-badge">選好單品後自動搜尋</span></div>
-    <div class="section-label" style="margin-bottom:8px">選擇要比對的單品</div>
-    <div class="cat-tabs" id="queryCatTabs"></div>
-    <div class="product-grid" id="queryProductGrid"></div>
-    <div id="smartResults"><div class="smart-empty">選擇單品後，將顯示內容相符或高度相似的現有組合</div></div>
+<!-- ══════════ TAB 2: 單品查詢 ══════════ -->
+<div id="tab-products" class="tab-content">
+<div class="app">
+  <div class="section-label">單品查詢</div>
+  <div class="cat-tabs" id="prodQueryCatTabs"></div>
+  <div class="query-toolbar">
+    <input class="search-input" type="text" id="prodQuerySearch" placeholder="搜尋單品名稱…" oninput="renderProdTable()">
+    <button class="clear-btn" onclick="clearProdQuery()">✕ 清除篩選</button>
   </div>
+  <div class="combo-table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>分類</th><th>商品名稱</th><th>原價</th><th>市價</th><th>平台售價</th>
+          <th>團購價</th><th>最低價</th><th>活動價</th><th>賠本價</th>
+        </tr>
+      </thead>
+      <tbody id="prodQueryTbody"></tbody>
+    </table>
+  </div>
+</div>
+</div>
+
+<!-- ══════════ TAB 3: 組合查詢 ══════════ -->
+<div id="tab-query" class="tab-content">
+<div class="app">
+
+  <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:10px">
+    <div class="section-label" style="margin-bottom:0">智慧比對</div>
+    <span style="font-size:13px;color:var(--accent);font-weight:500">選好單品後自動搜尋</span>
+  </div>
+  <div class="cat-tabs" id="matchCatTabs"></div>
+  <div class="product-grid" id="matchGrid"></div>
+  <div style="display:flex;gap:8px;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap">
+    <button class="btn-secondary" onclick="clearMatch()">清除</button>
+    <span class="match-selected-summary" id="matchSummary"></span>
+  </div>
+  <div id="matchResults"></div>
+
   <hr>
   <div class="section-label">瀏覽所有組合</div>
-  <div class="query-layout">
-    <div class="filter-panel">
-      <div class="filter-title">組合分類</div>
-      <button class="filter-btn active" onclick="setQueryFilter('all')">全部</button>
-      <button class="filter-btn" onclick="setQueryFilter('居家收納')">居家收納</button>
-      <button class="filter-btn" onclick="setQueryFilter('基礎收納')">基礎收納</button>
-      <button class="filter-btn" onclick="setQueryFilter('防盜機能')">防盜機能</button>
-      <button class="filter-btn" onclick="setQueryFilter('輕量系列')">輕量系列</button>
-      <hr class="filter-divider">
-      <button class="filter-btn" onclick="setQueryFilter('momo組合')">momo 組合</button>
-      <button class="filter-btn" onclick="setQueryFilter('mo+組合')">mo+ 組合</button>
-      <button class="filter-btn" onclick="setQueryFilter('蝦皮組合')">蝦皮組合</button>
-      <button class="filter-btn" onclick="setQueryFilter('PC組合')">PC 組合</button>
-      <button class="filter-btn" onclick="setQueryFilter('官網組合')">官網組合</button>
-      <button class="filter-btn" onclick="setQueryFilter('誠品組合')">誠品組合</button>
-    </div>
-    <div><div class="combo-list" id="comboList"></div></div>
+  <div class="cat-tabs" id="queryCatTabs"></div>
+  <div class="query-toolbar">
+    <input class="search-input" type="text" id="querySearch" placeholder="搜尋組合名稱…" oninput="renderTable()">
+    <button class="clear-btn" onclick="clearQuery()">✕ 清除篩選</button>
   </div>
+  <div class="combo-table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>分類</th><th>組合名稱</th><th>原價</th><th>市價</th><th>平台售價</th>
+          <th>團購價</th><th>最低價</th><th>活動價</th><th>熱銷活動價</th><th>賠本價</th>
+        </tr>
+      </thead>
+      <tbody id="comboTbody"></tbody>
+    </table>
+  </div>
+
+</div>
 </div>
 
 <script>
-    function checkPassword() {
-        const pwd = document.getElementById("passwordInput").value;
-        if (pwd === "123456") { document.getElementById("auth-overlay").style.display = "none"; } 
-        else { alert("密碼錯誤，請重新輸入"); }
-    }
+// ═══ 全域函式：需在 DOM onclick 前定義 ═══
+window.switchTab = function(t, btn) {
+  document.querySelectorAll('.tab-content').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(el=>el.classList.remove('active'));
+  document.getElementById('tab-'+t).classList.add('active');
+  btn.classList.add('active');
+};
 
-    const products = [{cat:"基礎收納",name:"收納袋 S",ori:780,sale:695,group:605,low:626,warn:530},{cat:"基礎收納",name:"收納袋 M",ori:1080,sale:895,group:779,low:806,warn:697},{cat:"基礎收納",name:"收納袋 L",ori:1320,sale:1090,group:948,low:981,warn:832},{cat:"居家收納",name:"收納袋 XL",ori:1580,sale:1270,group:1127,low:1143,warn:979},{cat:"居家收納",name:"收納袋 XXL",ori:2100,sale:1650,group:1479,low:1485,warn:1280},{cat:"居家收納",name:"外套收納袋M",ori:2180,sale:1870,group:1625,low:1683,warn:1475},{cat:"居家收納",name:"外套收納袋 L",ori:2540,sale:2540,group:2159,low:2286,warn:null},{cat:"居家收納",name:"多功能吊掛分隔收納袋",ori:1990,sale:1990,group:1699,low:1791,warn:null},{cat:"居家收納",name:"床底收納專用收納袋",ori:1690,sale:1690,group:1470,low:1521,warn:null},{cat:"防盜機能",name:"防盜機能側背包S",ori:2100,sale:1780,group:1499,low:1602,warn:1320},{cat:"防盜機能",name:"防盜機能護照包",ori:1150,sale:990,group:818,low:891,warn:700},{cat:"防盜機能",name:"防盜機能側背包L",ori:2180,sale:2180,group:null,low:1962,warn:null},{cat:"防盜機能",name:"防盜機能後背包",ori:3000,sale:2880,group:2500,low:2592,warn:2245},{cat:"防盜機能",name:"Safeplus安心防盜後背包",ori:3450,sale:2875,group:2499,low:2588,warn:null},{cat:"防盜機能",name:"Safeplus安心防盜護照包",ori:1455,sale:1280,group:1080,low:1152,warn:null},{cat:"防盜機能",name:"Safeplus安心防盜側背包",ori:2148,sale:1875,group:1599,low:1688,warn:null},{cat:"旅行配件",name:"盥洗包",ori:980,sale:790,group:685,low:711,warn:620},{cat:"旅行配件",name:"半半包",ori:540,sale:455,group:396,low:410,warn:380},{cat:"旅行配件",name:"化妝包",ori:1230,sale:1050,group:869,low:945,warn:820},{cat:"旅行配件",name:"托特包",ori:1350,sale:1150,group:969,low:1035,warn:850},{cat:"輕量系列",name:"折疊後背包",ori:2350,sale:2180,group:1895,low:1962,warn:1780},{cat:"輕量系列",name:"折疊行李袋",ori:2080,sale:1890,group:1639,low:1701,warn:1600},{cat:"輕量系列",name:"Lite收納袋S",ori:750,sale:635,group:552,low:572,warn:495},{cat:"輕量系列",name:"Lite收納袋M",ori:1050,sale:890,group:774,low:801,warn:685},{cat:"輕量系列",name:"Lite收納袋L",ori:1250,sale:1060,group:922,low:954,warn:795},{cat:"輕量系列",name:"Lite 鞋袋",ori:590,sale:499,group:429,low:449,warn:417},{cat:"輕量系列",name:"Lite 網袋組",ori:750,sale:680,group:589,low:612,warn:571}];
-    const combos = [{cat:"居家收納",name:"XL+XL",ori:3160,sale:2445,group:2125,low:2201,plat:2445,act:null,warn:1958,items:{"收納袋 XL":2}},{cat:"居家收納",name:"XL+XL+XL",ori:4740,sale:3650,group:3175,low:3285,plat:3650,act:3480,warn:2937,items:{"收納袋 XL":3}},{cat:"居家收納",name:"XL+XL+XL+XL",ori:6320,sale:4800,group:null,low:4320,plat:4800,act:4650,warn:null,items:{"收納袋 XL":4}},{cat:"居家收納",name:"XL+XL+XL+XL+XL",ori:7900,sale:6100,group:null,low:5500,plat:6100,act:5800,warn:null,items:{"收納袋 XL":5}},{cat:"居家收納",name:"外套收納袋M兩件組",ori:4360,sale:3740,group:null,low:3366,plat:3555,act:3399,warn:2950,items:{"外套收納袋M":2}},{cat:"居家收納",name:"外套收納袋M三件組",ori:6540,sale:5610,group:null,low:5049,plat:5330,act:4999,warn:4425,items:{"外套收納袋M":3}},{cat:"基礎收納",name:"20吋行李箱組（S+S+M)",ori:2640,sale:2095,group:1819,low:1886,plat:2095,act:null,warn:1757,items:{"收納袋 S":2,"收納袋 M":1}},{cat:"基礎收納",name:"（團購用）24行李箱組（S+M+L)",ori:3180,sale:2380,group:2069,low:2142,plat:null,act:null,warn:null,items:{"收納袋 S":1,"收納袋 M":1,"收納袋 L":1}},{cat:"基礎收納",name:"（電商用）24行李箱組（S+S+M+L)",ori:3960,sale:2680,group:null,low:2412,plat:2680,act:null,warn:2589,items:{"收納袋 S":2,"收納袋 M":1,"收納袋 L":1}},{cat:"基礎收納",name:"（團購用）28行李箱組（S+M+M+L)",ori:4260,sale:3180,group:2765,low:2862,plat:null,act:null,warn:null,items:{"收納袋 S":1,"收納袋 M":2,"收納袋 L":1}},{cat:"基礎收納",name:"（電商用）28行李箱組（S+S+M+M+L)",ori:5040,sale:3480,group:null,low:3132,plat:3480,act:3280,warn:3286,items:{"收納袋 S":2,"收納袋 M":2,"收納袋 L":1}},{cat:"防盜機能",name:"防盜機能側背+護照包組合",ori:3250,sale:2770,group:null,low:2493,plat:2699,act:2599,warn:2020,items:{"防盜機能側背包S":1,"防盜機能護照包":1}},{cat:"防盜機能",name:"防盜機能後背+護照包組合",ori:4150,sale:3870,group:null,low:3483,plat:3677,act:3399,warn:2945,items:{"防盜機能後背包":1,"防盜機能護照包":1}},{cat:"防盜機能",name:"防盜機能後背+側背+護照組合",ori:6400,sale:5650,group:null,low:5085,plat:5368,act:null,warn:4265,items:{"防盜機能後背包":1,"防盜機能側背包S":1,"防盜機能護照包":1}},{cat:"輕量系列",name:"Lite超輕量收納袋20吋組（S+S+M）",ori:2550,sale:2035,group:1769,low:1832,plat:2035,act:null,warn:1675,items:{"Lite收納袋S":2,"Lite收納袋M":1}},{cat:"輕量系列",name:"Lite超輕量收納袋24吋組（S+M+L）",ori:3050,sale:2300,group:1999,low:2070,plat:2300,act:null,warn:1975,items:{"Lite收納袋S":1,"Lite收納袋M":1,"Lite收納袋L":1}},{cat:"輕量系列",name:"Lite超輕量收納袋28吋組（S+M+M+L）",ori:4100,sale:2995,group:2559,low:2696,plat:2995,act:null,warn:2470,items:{"Lite收納袋S":1,"Lite收納袋M":2,"Lite收納袋L":1}},{cat:"momo組合",name:"輕量旅行收納組 S+S+M+M+L+L",ori:6360,sale:5360,group:null,low:4824,plat:4499,act:4111,warn:4118,items:{"Lite收納袋S":2,"Lite收納袋M":2,"Lite收納袋L":2}},{cat:"momo組合",name:"輕量旅行全配組 S+S+M+L+鞋袋",ori:4550,sale:3874,group:null,low:3487,plat:3380,act:3111,warn:3006,items:{"Lite收納袋S":2,"Lite收納袋M":1,"Lite收納袋L":1,"Lite 鞋袋":1}},{cat:"momo組合",name:"基礎旅行收納組 S+M+M+L+L+托特",ori:6930,sale:5815,group:null,low:5234,plat:5380,act:4911,warn:null,items:{"收納袋 S":1,"收納袋 M":2,"收納袋 L":2,"托特包":1}},{cat:"momo組合",name:"基礎居家收納組 XL+XL+外套（奶茶）",ori:5340,sale:4410,group:null,low:3969,plat:4280,act:3811,warn:null,items:{"收納袋 XL":2,"外套收納袋M":1}},{cat:"momo組合",name:"基礎一次擁有組 S+M+L+XL+XL (三色）",ori:6340,sale:5220,group:null,low:4698,plat:4780,act:4311,warn:3038,items:{"收納袋 S":1,"收納袋 M":1,"收納袋 L":1,"收納袋 XL":2}},{cat:"momo組合",name:"XL雙入+L三入組合價",ori:6500,sale:5545,group:null,low:5144,plat:5323,act:5199,warn:null,items:{"收納袋 XL":2,"收納袋 L":3}},{cat:"momo組合",name:"寢具2XL單入組",ori:2100,sale:1650,group:1479,low:1485,plat:1650,act:null,warn:1280,items:{"收納袋 XXL":1}},{cat:"momo組合",name:"寢具2XL雙入組",ori:4200,sale:3170,group:null,low:2853,plat:3170,act:3099,warn:2560,items:{"收納袋 XXL":2}},{cat:"momo組合",name:"寢具2XL三入組",ori:6300,sale:4700,group:null,low:4230,plat:4700,act:4599,warn:3840,items:{"收納袋 XXL":3}},{cat:"momo組合",name:"寢具三入",ori:4740,sale:3650,group:3175,low:3285,plat:3650,act:3480,warn:2937,items:{"收納袋 XL":3}},{cat:"momo組合",name:"寢具五入",ori:7900,sale:6100,group:null,low:5500,plat:6100,act:5800,warn:null,items:{"收納袋 XL":5}},{cat:"momo組合",name:"外套收納袋 雙",ori:4360,sale:3740,group:null,low:3366,plat:3555,act:3399,warn:2950,items:{"外套收納袋M":2}},{cat:"momo組合",name:"外套收納袋 三",ori:6540,sale:5610,group:null,low:5049,plat:5330,act:4999,warn:4425,items:{"外套收納袋M":3}},{cat:"momo組合",name:"外套收納袋 L",ori:2540,sale:2540,group:2159,low:2286,plat:2500,act:2399,warn:null,items:{"外套收納袋 L":1}},{cat:"momo組合",name:"XL+2XL",ori:3680,sale:2920,group:2606,low:2628,plat:2880,act:2720,warn:null,items:{"收納袋 XL":1,"收納袋 XXL":1}},{cat:"momo組合",name:"XL+XL+2XL+2XL",ori:7360,sale:5840,group:5212,low:5256,plat:5700,act:5500,warn:null,items:{"收納袋 XL":2,"收納袋 XXL":2}},{cat:"momo組合",name:"防盜機能側背L+護照包組",ori:3650,sale:3170,group:null,low:2853,plat:3099,act:2999,warn:null,items:{"防盜機能側背包L":1,"防盜機能護照包":1}},{cat:"momo組合",name:"Safeplus側背+護照",ori:3603,sale:3155,group:null,low:2840,plat:2799,act:2759,warn:null,items:{"Safeplus安心防盜側背包":1,"Safeplus安心防盜護照包":1}},{cat:"momo組合",name:"Safeplus後背+護照",ori:4905,sale:4155,group:null,low:3740,plat:3699,act:3659,warn:null,items:{"Safeplus安心防盜後背包":1,"Safeplus安心防盜護照包":1}},{cat:"momo組合",name:"Safeplus後背+側背+護照",ori:7053,sale:6030,group:null,low:5427,plat:5399,act:5753,warn:null,items:{"Safeplus安心防盜後背包":1,"Safeplus安心防盜側背包":1,"Safeplus安心防盜護照包":1}},{cat:"momo組合",name:"吊掛衣櫃收納+外套收納",ori:3860,sale:3860,group:null,low:3474,plat:3750,act:3550,warn:null,items:{"多功能吊掛分隔收納袋":1,"外套收納袋M":1}},{cat:"momo組合",name:"吊掛衣櫃收納+XL雙入",ori:3260,sale:3260,group:null,low:2934,plat:3150,act:2990,warn:null,items:{"多功能吊掛分隔收納袋":1,"收納袋 XL":2}},{cat:"蝦皮組合",name:"S+網袋三入",ori:1500,sale:1315,group:null,low:1184,plat:1300,act:1250,warn:1141,items:{"收納袋 S":1,"Lite 網袋組":3}},{cat:"蝦皮組合",name:"S+M+L+鞋袋",ori:3800,sale:2799,group:null,low:2519,plat:2680,act:2580,warn:2428,items:{"收納袋 S":1,"收納袋 M":1,"收納袋 L":1,"Lite 鞋袋":1}},{cat:"mo+組合",name:"S+M",ori:1860,sale:1590,group:null,low:null,plat:1480,act:null,warn:1227,items:{"收納袋 S":1,"收納袋 M":1}},{cat:"mo+組合",name:"輕量 S+M",ori:1800,sale:1525,group:null,low:null,plat:null,act:null,warn:null,items:{"Lite收納袋S":1,"Lite收納袋M":1}},{cat:"mo+組合",name:"（S+M+盥洗包) 五色",ori:2840,sale:2380,group:2071,low:null,plat:2350,act:1999,warn:1924,items:{"收納袋 S":1,"收納袋 M":1,"盥洗包":1}},{cat:"mo+組合",name:"(S+M+M) 五色",ori:2940,sale:2485,group:2162,low:null,plat:null,act:null,warn:null,items:{"收納袋 S":1,"收納袋 M":2}},{cat:"mo+組合",name:"輕量 S+M+M 三色",ori:2850,sale:2415,group:2101,low:null,plat:null,act:null,warn:null,items:{"Lite收納袋S":1,"Lite收納袋M":2}},{cat:"mo+組合",name:"輕量 M+L+鞋袋 三色",ori:2890,sale:2449,group:2131,low:null,plat:null,act:null,warn:null,items:{"Lite收納袋M":1,"Lite收納袋L":1,"Lite 鞋袋":1}},{cat:"mo+組合",name:"輕量 M+M+網袋 三色",ori:2850,sale:2460,group:2140,low:null,plat:null,act:null,warn:null,items:{"Lite收納袋M":2,"Lite 網袋組":1}},{cat:"mo+組合",name:"側背+盥洗",ori:3080,sale:2699,group:2348,low:2511,plat:2440,act:null,warn:2199,items:{"防盜機能側背包S":1,"盥洗包":1}},{cat:"mo+組合",name:"L+XL",ori:2900,sale:2360,group:null,low:null,plat:2299,act:2150,warn:1811,items:{"收納袋 L":1,"收納袋 XL":1}},{cat:"mo+組合",name:"L+XL+XL",ori:4480,sale:3630,group:null,low:null,plat:3499,act:3280,warn:2790,items:{"收納袋 L":1,"收納袋 XL":2}},{cat:"mo+組合",name:"M+M+L+L",ori:4800,sale:3970,group:null,low:3573,plat:3699,act:3480,warn:null,items:{"收納袋 M":2,"收納袋 L":2}},{cat:"mo+組合",name:"M+M+M+L",ori:4560,sale:3775,group:null,low:3398,plat:3480,act:3280,warn:null,items:{"收納袋 M":3,"收納袋 L":1}},{cat:"PC組合",name:"S+盥洗包 三色",ori:1760,sale:1485,group:null,low:1337,plat:1480,act:1299,warn:1150,items:{"收納袋 S":1,"盥洗包":1}},{cat:"PC組合",name:"M+盥洗包 三色",ori:2060,sale:1685,group:null,low:1517,plat:1680,act:1399,warn:1320,items:{"收納袋 M":1,"盥洗包":1}},{cat:"PC組合",name:"S+M+L+盥洗包",ori:4160,sale:3470,group:null,low:null,plat:3199,act:2899,warn:2679,items:{"收納袋 S":1,"收納袋 M":1,"收納袋 L":1,"盥洗包":1}},{cat:"官網組合",name:"S+S+M+M+L+L+XL+XL",ori:9520,sale:null,group:6920,low:null,plat:7288,act:6888,warn:6076,items:{"收納袋 S":2,"收納袋 M":2,"收納袋 L":2,"收納袋 XL":2}},{cat:"官網組合",name:"S+M+L+側背包+護照包+盥洗包",ori:7410,sale:null,group:5334,low:null,plat:5788,act:5599,warn:4699,items:{"收納袋 S":1,"收納袋 M":1,"收納袋 L":1,"防盜機能側背包S":1,"防盜機能護照包":1,"盥洗包":1}},{cat:"誠品組合",name:"輕量 S+M+網袋三入",ori:2550,sale:2168,group:1915,low:1951,plat:2099,act:1999,warn:1751,items:{"Lite收納袋S":1,"Lite收納袋M":1,"Lite 網袋組":3}},{cat:"誠品組合",name:"輕量 S+M+鞋袋",ori:2390,sale:2032,group:1755,low:1829,plat:1999,act:1899,warn:1597,items:{"Lite收納袋S":1,"Lite收納袋M":1,"Lite 鞋袋":1}}];
-    const fmt = n => n == null ? "—" : "NT$" + Math.round(n).toLocaleString();
-    function showPage(id) { document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active')); document.getElementById('page-'+id).classList.add('active'); event.currentTarget.classList.add('active'); }
-    const calcCats = ["全部", ...new Set(products.map(p => p.cat))]; let calcActiveCat = "全部"; let calcSelected = {};
-    function renderCalcCats() { document.getElementById("calcCatTabs").innerHTML = calcCats.map(c => `<button class="cat-tab${c===calcActiveCat?" active":""}" onclick="setCalcCat('${c}')">${c}</button>`).join(""); }
-    function setCalcCat(c) { calcActiveCat = c; renderCalcCats(); renderCalcProducts(); }
-    function renderCalcProducts() { const list = calcActiveCat === "全部" ? products : products.filter(p => p.cat === calcActiveCat); document.getElementById("productGrid").innerHTML = list.map(p => { const qty = calcSelected[p.name] ? calcSelected[p.name].qty : 0; return `<div class="product-card${qty>0?" selected":""}"><div class="pcat">${p.cat}</div><div class="pname">${p.name}</div><div class="pprice">原價 ${fmt(p.ori)}</div><div class="qty-row"><button class="qty-btn" onclick="calcChangeQty('${p.name}',-1)">−</button><span class="qty-val">${qty}</span><button class="qty-btn" onclick="calcChangeQty('${p.name}',1)">＋</button></div></div>`; }).join(""); }
-    function calcChangeQty(name, delta) { const p = products.find(x => x.name === name); if (!p) return; if (!calcSelected[name]) calcSelected[name] = {...p, qty: 0}; calcSelected[name].qty = Math.max(0, calcSelected[name].qty + delta); if (calcSelected[name].qty === 0) delete calcSelected[name]; renderCalcProducts(); renderCalcSelected(); }
-    function calcRemoveItem(name) { delete calcSelected[name]; renderCalcProducts(); renderCalcSelected(); }
-    function renderCalcSelected() { const items = Object.values(calcSelected).filter(x => x.qty > 0); const sec = document.getElementById("calcSelectedSection"); sec.style.display = items.length === 0 ? "none" : "block"; if (!items.length) return; document.getElementById("selectedList").innerHTML = items.map(item => `<div class="sel-item"><div><span class="sel-name">${item.name}</span><span style="color:var(--text3);font-size:12px"> × ${item.qty}</span></div><div style="display:flex;align-items:center;gap:12px"><span style="font-size:12px;color:var(--text2)">原價 ${fmt(item.ori*item.qty)} ／ 售價 ${fmt(item.sale*item.qty)}</span><button class="remove-btn" onclick="calcRemoveItem('${item.name}')">×</button></div></div>`).join(""); calcResults(items); }
-    function calcResults(items) { const saleD = parseFloat(document.getElementById("saleDisc").value)||90, groupD = parseFloat(document.getElementById("groupDisc").value)||79, minD = parseFloat(document.getElementById("minDisc").value)||90, act1D = parseFloat(document.getElementById("act1Disc").value)||95, act2D = parseFloat(document.getElementById("act2Disc").value)||80, act1M = document.getElementById("act1Manual").value, act2M = document.getElementById("act2Manual").value; const sumOri = items.reduce((s,x) => s + x.ori*x.qty, 0), sumSale = items.reduce((s,x) => s + x.sale*x.qty, 0), sumWarn = items.reduce((s,x) => s + (x.warn != null ? x.warn : Math.round(x.sale*0.75))*x.qty, 0), hasNoGroup = items.some(x => x.group == null); const oriVal = Math.round(sumOri), saleVal = Math.round(sumSale*(saleD/100)), groupVal = hasNoGroup ? null : Math.round(items.reduce((s,x) => s + x.group*x.qty, 0)*(groupD/100)), minVal = Math.round(saleVal*(minD/100)), warnVal = Math.round(sumWarn), act1Val = act1M ? parseInt(act1M) : Math.round(saleVal*(act1D/100)), act2Val = act2M ? parseInt(act2M) : Math.round(saleVal*(act2D/100)); const warnings = []; if(act1Val < warnVal) warnings.push(`一般活動價 ${fmt(act1Val)} 低於警告價 ${fmt(warnVal)}`); if(act2Val < warnVal) warnings.push(`熱銷組活動價 ${fmt(act2Val)} 低於警告價 ${fmt(warnVal)}`); if(minVal < warnVal) warnings.push(`最低價 ${fmt(minVal)} 低於警告價 ${fmt(warnVal)}`); const wb = document.getElementById("warnBox"); if(warnings.length) { wb.style.display = "flex"; wb.className = "warn-box warn"; wb.innerHTML = `<span>⚠</span><div>${warnings.join("<br>")}</div>`; } else { wb.style.display = "none"; } const act1Note = act1M ? "手動輸入" : `售價 × ${act1D}%`, act2Note = act2M ? "手動輸入" : `售價 × ${act2D}%`; document.getElementById("results").innerHTML = `<div class="result-card"><div class="rl">原價</div><div class="rv">${fmt(oriVal)}</div><div class="rs">單品原價加總</div></div><div class="result-card r-sale"><div class="rl">售價</div><div class="rv">${fmt(saleVal)}</div><div class="rs">單品售價加總 × ${saleD}%</div></div><div class="result-card"><div class="rl">團購價</div><div class="rv">${hasNoGroup ? "不適用" : fmt(groupVal)}</div><div class="rs">${hasNoGroup ? "含不支援團購商品" : "單品團購加總 × "+groupD+"%"}</div></div><div class="result-card"><div class="rl">最低價</div><div class="rv">${fmt(minVal)}</div><div class="rs">售價 × ${minD}%</div></div><div class="result-card r-act1"><div class="rl">一般活動價</div><div class="rv">${fmt(act1Val)}</div><div class="rs">${act1Note}</div></div><div class="result-card r-act2"><div class="rl">熱銷組活動價</div><div class="rv">${fmt(act2Val)}</div><div class="rs">${act2Note}</div></div><div class="result-card${warnVal > minVal ? " r-warn-alert" : ""}"><div class="rl">警告價</div><div class="rv">${fmt(warnVal)}</div><div class="rs">單品警告價加總</div></div>`; }
-    ["saleDisc","groupDisc","minDisc","act1Disc","act1Manual","act2Disc","act2Manual"].forEach(id => { document.getElementById(id).addEventListener("input", renderCalcSelected); });
-    const queryCats = ["全部", ...new Set(products.map(p => p.cat))]; let queryActiveCat = "全部"; let querySelected = {}; let queryFilter = "all";
-    function renderQueryCats() { document.getElementById("queryCatTabs").innerHTML = queryCats.map(c => `<button class="cat-tab${c===queryActiveCat?" active":""}" onclick="setQueryCat('${c}')">${c}</button>`).join(""); }
-    function setQueryCat(c) { queryActiveCat = c; renderQueryCats(); renderQueryProducts(); }
-    function renderQueryProducts() { const list = queryActiveCat === "全部" ? products : products.filter(p => p.cat === queryActiveCat); document.getElementById("queryProductGrid").innerHTML = list.map(p => { const qty = querySelected[p.name] ? querySelected[p.name].qty : 0; return `<div class="product-card${qty>0?" selected":""}"><div class="pcat">${p.cat}</div><div class="pname">${p.name}</div><div class="pprice">售價 ${fmt(p.sale)}</div><div class="qty-row"><button class="qty-btn" onclick="queryChangeQty('${p.name}',-1)">−</button><span class="qty-val">${qty}</span><button class="qty-btn" onclick="queryChangeQty('${p.name}',1)">＋</button></div></div>`; }).join(""); }
-    function queryChangeQty(name, delta) { const p = products.find(x => x.name === name); if (!p) return; if (!querySelected[name]) querySelected[name] = {...p, qty: 0}; querySelected[name].qty = Math.max(0, querySelected[name].qty + delta); if (querySelected[name].qty === 0) delete querySelected[name]; renderQueryProducts(); runSmartMatch(); }
-    function runSmartMatch() { const sel = Object.fromEntries(Object.entries(querySelected).filter(([,v]) => v.qty > 0).map(([k,v]) => [k, v.qty])); const selKeys = Object.keys(sel); if (selKeys.length === 0) { document.getElementById("smartResults").innerHTML = '<div class="smart-empty">選擇單品後，將顯示內容相符或高度相似的現有組合</div>'; return; } const results = combos.map(combo => { const ci = combo.items, ciKeys = Object.keys(ci), isFullMatch = JSON.stringify(Object.fromEntries(Object.entries(ci).sort())) === JSON.stringify(Object.fromEntries(Object.entries(sel).sort())), overlapItems = selKeys.filter(k => ci[k]), overlapQty = overlapItems.reduce((s,k) => s + Math.min(sel[k], ci[k]), 0), totalSel = Object.values(sel).reduce((a,b)=>a+b,0), totalCombo = Object.values(ci).reduce((a,b)=>a+b,0), score = overlapQty / Math.max(totalSel, totalCombo); return { combo, isFullMatch, score }; }).filter(r => r.isFullMatch || r.score >= 0.5).sort((a,b) => { if (a.isFullMatch !== b.isFullMatch) return a.isFullMatch ? -1 : 1; return b.score - a.score; }).slice(0, 8); if (results.length === 0) { document.getElementById("smartResults").innerHTML = '<div class="smart-empty">找不到相似的現有組合</div>'; return; } document.getElementById("smartResults").innerHTML = results.map(({combo, isFullMatch, score}) => { const pct = Math.round(score * 100), badge = isFullMatch ? `<span class="match-badge match-full">完全相符</span>` : `<span class="match-badge match-partial">相似度 ${pct}%</span>`, itemSpans = Object.entries(combo.items).map(([k,v]) => `<span>${k}${v>1?" ×"+v:""}</span>`).join(""); return `<div class="match-result"><div class="match-result-header"><span class="match-result-name">${combo.name}</span><div style="display:flex;align-items:center;gap:6px"><span style="font-size:11px;color:var(--text3)">${combo.cat}</span>${badge}</div></div><div class="match-result-prices"><div class="mrp"><div class="mrp-label">原價</div><div class="mrp-val">${fmt(combo.ori)}</div></div><div class="mrp"><div class="mrp-label">售價</div><div class="mrp-val hilight">${fmt(combo.sale)}</div></div><div class="mrp"><div class="mrp-label">團購價</div><div class="mrp-val${combo.group===null?" na":""}">${combo.group===null?"不適用":fmt(combo.group)}</div></div><div class="mrp"><div class="mrp-label">最低價</div><div class="mrp-val">${fmt(combo.low)}</div></div><div class="mrp"><div class="mrp-label">活動價</div><div class="mrp-val act1c">${fmt(combo.act)}</div></div><div class="mrp"><div class="mrp-label">警告價</div><div class="mrp-val${combo.warn && combo.low && combo.low < combo.warn ? " na":""}">${fmt(combo.warn)}</div></div></div><div class="combo-items">${itemSpans}</div></div>`; }).join(""); }
-    function setQueryFilter(cat) { queryFilter = cat; document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active')); event.currentTarget.classList.add('active'); renderComboList(); }
-    function renderComboList() { const list = queryFilter === "all" ? combos : combos.filter(c => c.cat === queryFilter); if (list.length === 0) { document.getElementById("comboList").innerHTML = '<div class="empty-state">此分類暫無組合</div>'; return; } document.getElementById("comboList").innerHTML = list.map(combo => { const itemSpans = Object.entries(combo.items).map(([k,v]) => `<span>${k}${v>1?" ×"+v:""}</span>`).join(""); return `<div class="combo-card"><div class="combo-header"><span class="combo-name">${combo.name}</span><span class="combo-cat-badge">${combo.cat}</span></div><div class="combo-prices"><div class="cp"><div class="cp-label">原價</div><div class="cp-val">${fmt(combo.ori)}</div></div><div class="cp"><div class="cp-label">售價</div><div class="cp-val hilight">${fmt(combo.sale)}</div></div><div class="cp"><div class="cp-label">團購價</div><div class="cp-val${combo.group===null?" na":""}">${combo.group===null?"不適用":fmt(combo.group)}</div></div><div class="cp"><div class="cp-label">最低價</div><div class="cp-val">${fmt(combo.low)}</div></div><div class="cp"><div class="cp-label">活動價</div><div class="cp-val act1">${fmt(combo.act)}</div></div><div class="cp"><div class="cp-label">警告價</div><div class="cp-val">${fmt(combo.warn)}</div></div></div><div class="combo-items">${itemSpans}</div></div>`; }).join(""); }
-    renderCalcCats(); renderCalcProducts(); renderQueryCats(); renderQueryProducts(); renderComboList();
+
+// ═══════════════════════════════════════════════════════
+// 資料：單品
+// msrp=市價, sale=平台售價, group=團購價, low=最低價, act=活動價, cost=賠本價
+// ═══════════════════════════════════════════════════════
+const products = [
+  {cat:"基礎收納",name:"收納袋 S",  ori:780,  msrp:695,  sale:695,  group:605,  low:626,  act:646,  cost:528},
+  {cat:"基礎收納",name:"收納袋 M",  ori:1080, msrp:895,  sale:895,  group:779,  low:806,  act:832,  cost:680},
+  {cat:"基礎收納",name:"收納袋 L",  ori:1320, msrp:1090, sale:1090, group:948,  low:981,  act:1014, cost:828},
+  {cat:"居家收納",name:"收納袋 XL", ori:1580, msrp:1270, sale:1270, group:1130, low:1143, act:1181, cost:965},
+  {cat:"居家收納",name:"收納袋 XXL",ori:2100, msrp:1650, sale:1650, group:1479, low:1485, act:1535, cost:1254},
+  {cat:"居家收納",name:"外套收納袋M",ori:2180,msrp:1870, sale:1870, group:1625, low:1683, act:1799, cost:1421},
+  {cat:"居家收納",name:"外套收納袋 L",ori:2540,msrp:2540,sale:2500, group:2159, low:2286, act:2399, cost:1930},
+  {cat:"居家收納",name:"多功能吊掛分隔收納袋",ori:1990,msrp:1990,sale:1900,group:1699,low:1791,act:1799,cost:1512},
+  {cat:"居家收納",name:"床底收納專用收納袋",ori:1690,msrp:1690,sale:1600,group:1470,low:1521,act:1550,cost:1284},
+  {cat:"防盜機能",name:"防盜機能側背包S",ori:2100,msrp:1780,sale:1780,group:1499,low:1602,act:1699,cost:1353},
+  {cat:"防盜機能",name:"防盜機能護照包",ori:1150,msrp:990, sale:990, group:818, low:891, act:899, cost:752},
+  {cat:"防盜機能",name:"防盜機能側背包L",ori:2180,msrp:2180,sale:2180,group:1897,low:1962,act:1999,cost:1657},
+  {cat:"防盜機能",name:"防盜機能後背包",ori:3000,msrp:2880,sale:2880,group:2500,low:2592,act:2595,cost:2189},
+  {cat:"防盜機能",name:"Safeplus安心防盜後背包",ori:3450,msrp:2875,sale:2875,group:2499,low:2588,act:2799,cost:2185},
+  {cat:"防盜機能",name:"Safeplus安心防盜護照包",ori:1455,msrp:1280,sale:1280,group:1080,low:1152,act:1155,cost:973},
+  {cat:"防盜機能",name:"Safeplus安心防盜側背包",ori:2148,msrp:1875,sale:1875,group:1599,low:1688,act:1799,cost:1425},
+  {cat:"旅行配件",name:"盥洗包",ori:980,msrp:790,sale:790,group:685,low:711,act:735,cost:600},
+  {cat:"旅行配件",name:"半半包",ori:540,msrp:455,sale:455,group:396,low:410,act:423,cost:346},
+  {cat:"旅行配件",name:"化妝包",ori:1230,msrp:1050,sale:1050,group:869,low:945,act:977,cost:798},
+  {cat:"旅行配件",name:"托特包",ori:1350,msrp:1150,sale:1150,group:969,low:1035,act:1070,cost:874},
+  {cat:"輕量系列",name:"折疊後背包",ori:2350,msrp:2180,sale:2180,group:1895,low:1962,act:1999,cost:1657},
+  {cat:"輕量系列",name:"折疊行李袋",ori:2080,msrp:1890,sale:1890,group:1639,low:1701,act:1750,cost:1436},
+  {cat:"輕量系列",name:"Lite收納袋S",ori:750,msrp:635,sale:635,group:552,low:572,act:591,cost:483},
+  {cat:"輕量系列",name:"Lite收納袋M",ori:1050,msrp:890,sale:890,group:774,low:801,act:828,cost:676},
+  {cat:"輕量系列",name:"Lite收納袋L",ori:1250,msrp:1060,sale:1060,group:922,low:954,act:986,cost:806},
+  {cat:"輕量系列",name:"Lite 鞋袋",ori:590,msrp:499,sale:499,group:429,low:449,act:464,cost:379},
+  {cat:"輕量系列",name:"Lite 網袋組",ori:750,msrp:680,sale:680,group:589,low:612,act:632,cost:517},
+];
+
+// ═══════════════════════════════════════════════════════
+// 資料：組合
+// msrp=市價(舊售價欄), sale=平台售價, group=團購價, low=最低價
+// act=活動價(有值用值，null=推算), hot=熱銷組活動價(有值用值，null=推算)
+// group: null=待補(—), "X"=不開放
+// ═══════════════════════════════════════════════════════
+const combos = [
+  // 居家收納
+  {cat:"居家收納",name:"XL+XL",                ori:3160,msrp:2445,sale:2445,group:2125,  low:2201,  act:2323, hot:2299,  cost:1958},
+  {cat:"居家收納",name:"XL+XL+XL",             ori:4740,msrp:3650,sale:3650,group:3175,  low:3285,  act:3480, hot:3399,  cost:2937},
+  {cat:"居家收納",name:"XL+XL+XL+XL",          ori:6320,msrp:4800,sale:4800,group:"X",   low:4320,  act:4650, hot:"x",   cost:3840},
+  {cat:"居家收納",name:"XL+XL+XL+XL+XL",       ori:7900,msrp:6100,sale:6100,group:"X",   low:5500,  act:5800, hot:5499,  cost:4880},
+  {cat:"居家收納",name:"外套收納袋M兩件組",       ori:4360,msrp:3740,sale:3555,group:"X",   low:3366,  act:3399, hot:3399,  cost:2950},
+  {cat:"居家收納",name:"外套收納袋M三件組",       ori:6540,msrp:5610,sale:5330,group:"X",   low:5049,  act:4999, hot:4999,  cost:4425},
+  // 基礎收納
+  {cat:"基礎收納",name:"20吋行李箱組（S+S+M）",  ori:2640,msrp:2095,sale:2095,group:1819,  low:1886,  act:1990, hot:1999,  cost:1757},
+  {cat:"基礎收納",name:"（團購用）24行李箱組（S+M+L）",ori:3180,msrp:2380,sale:null,group:2069,low:2142,act:2261,hot:null, cost:1904},
+  {cat:"基礎收納",name:"（電商用）24行李箱組（S+S+M+L）",ori:3960,msrp:2680,sale:2680,group:"X",low:2412,act:2580,hot:2480,cost:2589},
+  {cat:"基礎收納",name:"（團購用）28行李箱組（S+M+M+L）",ori:4260,msrp:3180,sale:null,group:2765,low:2862,act:3021,hot:null,cost:2544},
+  {cat:"基礎收納",name:"（電商用）28行李箱組（S+S+M+M+L）",ori:5040,msrp:3480,sale:3480,group:"X",low:3132,act:3280,hot:3180,cost:3286},
+  // 防盜機能
+  {cat:"防盜機能",name:"防盜機能側背+護照包組合",  ori:3250,msrp:2770,sale:2699,group:null, low:2493,  act:2599, hot:2499,  cost:2020},
+  {cat:"防盜機能",name:"防盜機能後背+護照包組合",  ori:4150,msrp:3870,sale:3677,group:null, low:3483,  act:3399, hot:3399,  cost:2945},
+  {cat:"防盜機能",name:"防盜機能後背+側背+護照組合",ori:6400,msrp:5650,sale:5368,group:null,low:5085,  act:5368, hot:null,  cost:4265},
+  // 輕量系列
+  {cat:"輕量系列",name:"Lite超輕量收納袋20吋組（S+S+M）",ori:2550,msrp:2035,sale:2035,group:1769,low:1832,act:1933,hot:1999,cost:1675},
+  {cat:"輕量系列",name:"Lite超輕量收納袋24吋組（S+M+L）",ori:3050,msrp:2300,sale:2300,group:1999,low:2070,act:2185,hot:2199,cost:1975},
+  {cat:"輕量系列",name:"Lite超輕量收納袋28吋組（S+M+M+L）",ori:4100,msrp:2995,sale:2995,group:2559,low:2696,act:2845,hot:2799,cost:2470},
+  // momo組合
+  {cat:"momo組合",name:"輕量旅行收納組 S+S+M+M+L+L",ori:6360,msrp:5360,sale:4499,group:null,low:4824,act:4111,hot:null,cost:4118},
+  {cat:"momo組合",name:"輕量旅行全配組 S+S+M+L+鞋袋",ori:4550,msrp:3874,sale:3380,group:null,low:3487,act:3111,hot:null,cost:3006},
+  {cat:"momo組合",name:"基礎旅行收納組 S+M+M+L+L+托特",ori:6930,msrp:5815,sale:5380,group:null,low:5234,act:4911,hot:null,cost:4652},
+  {cat:"momo組合",name:"基礎居家收納組 XL+XL+外套（奶茶）",ori:5340,msrp:4410,sale:4280,group:null,low:3969,act:3811,hot:null,cost:3528},
+  {cat:"momo組合",name:"基礎一次擁有組 S+M+L+XL+XL（三色）",ori:6340,msrp:5220,sale:4780,group:null,low:4698,act:4311,hot:null,cost:3038},
+  {cat:"momo組合",name:"XL雙入+L三入組合價",     ori:6500,msrp:5545,sale:5323,group:null, low:5144,  act:5199, hot:null,  cost:4436},
+  {cat:"momo組合",name:"寢具2XL雙入組",          ori:4200,msrp:3170,sale:3170,group:null, low:2853,  act:3099, hot:null,  cost:2560},
+  {cat:"momo組合",name:"寢具2XL三入組",          ori:6300,msrp:4700,sale:4700,group:null, low:4230,  act:4599, hot:null,  cost:3840},
+  {cat:"momo組合",name:"寢具三入",               ori:4740,msrp:3650,sale:3650,group:3175, low:3285,  act:3480, hot:3399,  cost:2937},
+  {cat:"momo組合",name:"寢具五入",               ori:7900,msrp:6100,sale:6100,group:null, low:5500,  act:5800, hot:5499,  cost:4880},
+  {cat:"momo組合",name:"外套收納袋 雙",           ori:4360,msrp:3740,sale:3555,group:null, low:3366,  act:3399, hot:3399,  cost:2950},
+  {cat:"momo組合",name:"外套收納袋 三",           ori:6540,msrp:5610,sale:5330,group:null, low:5049,  act:4999, hot:4999,  cost:4425},
+  {cat:"momo組合",name:"外套收納袋 L",            ori:2540,msrp:2540,sale:2500,group:2159, low:2286,  act:2399, hot:2299,  cost:2032},
+  {cat:"momo組合",name:"XL+2XL",                ori:3680,msrp:2920,sale:2880,group:2606, low:2628,  act:2720, hot:null,  cost:2336},
+  {cat:"momo組合",name:"XL+XL+2XL+2XL",         ori:7360,msrp:5840,sale:5700,group:5212, low:5256,  act:5500, hot:null,  cost:4672},
+  {cat:"momo組合",name:"防盜機能側背L+護照包組",   ori:3650,msrp:3170,sale:3099,group:null, low:2853,  act:2999, hot:null,  cost:2536},
+  {cat:"momo組合",name:"Safeplus側背+護照",       ori:3603,msrp:3155,sale:2799,group:null, low:2840,  act:2759, hot:null,  cost:2524},
+  {cat:"momo組合",name:"Safeplus後背+護照",       ori:4905,msrp:4155,sale:3699,group:null, low:3740,  act:3659, hot:null,  cost:3324},
+  {cat:"momo組合",name:"Safeplus後背+側背+護照",  ori:7053,msrp:6030,sale:5399,group:null, low:5427,  act:5753, hot:null,  cost:4824},
+  {cat:"momo組合",name:"吊掛衣櫃收納+外套收納",   ori:3860,msrp:3860,sale:3750,group:null, low:3474,  act:3550, hot:null,  cost:3088},
+  {cat:"momo組合",name:"吊掛衣櫃收納+XL雙入",     ori:3260,msrp:3260,sale:3150,group:null, low:2934,  act:2990, hot:null,  cost:2608},
+  // 蝦皮組合
+  {cat:"蝦皮組合",name:"S+網袋三入",              ori:1500,msrp:1315,sale:1300,group:"X",  low:1184,  act:1250, hot:null,  cost:1141},
+  {cat:"蝦皮組合",name:"S+M+L+鞋袋",             ori:3800,msrp:2799,sale:2680,group:null, low:2519,  act:2580, hot:null,  cost:2428},
+  // mo+組合
+  {cat:"mo+組合", name:"S+M",                   ori:1860,msrp:1590,sale:1480,group:null, low:null,  act:1431, hot:null,  cost:1227},
+  {cat:"mo+組合", name:"輕量 S+M",               ori:1800,msrp:1525,sale:null, group:null, low:null,  act:null, hot:null,  cost:null},
+  {cat:"mo+組合", name:"（S+M+盥洗包）五色",       ori:2840,msrp:2380,sale:2350,group:2071, low:2142,  act:1999, hot:null,  cost:1924},
+  {cat:"mo+組合", name:"(S+M+M）五色",           ori:2940,msrp:2485,sale:null, group:2162, low:2237,  act:null, hot:null,  cost:null},
+  {cat:"mo+組合", name:"輕量 S+M+M 三色",         ori:2850,msrp:2415,sale:null, group:2101, low:2174,  act:null, hot:null,  cost:null},
+  {cat:"mo+組合", name:"輕量 M+L+鞋袋 三色",      ori:2890,msrp:2449,sale:null, group:2131, low:2204,  act:null, hot:null,  cost:null},
+  {cat:"mo+組合", name:"輕量 M+M+網袋 三色",      ori:2850,msrp:2460,sale:null, group:2140, low:2214,  act:null, hot:null,  cost:null},
+  {cat:"mo+組合", name:"側背+盥洗",               ori:3080,msrp:2699,sale:2440,group:2348, low:2511,  act:2429, hot:null,  cost:2199},
+  {cat:"mo+組合", name:"L+XL",                  ori:2900,msrp:2360,sale:2299,group:null, low:2124,  act:2150, hot:null,  cost:1811},
+  {cat:"mo+組合", name:"L+XL+XL",               ori:4480,msrp:3630,sale:3499,group:null, low:3267,  act:3280, hot:null,  cost:2790},
+  {cat:"mo+組合", name:"M+M+L+L",               ori:4800,msrp:3970,sale:3699,group:null, low:3573,  act:3480, hot:null,  cost:3176},
+  {cat:"mo+組合", name:"M+M+M+L",               ori:4560,msrp:3775,sale:3480,group:null, low:3397,  act:3280, hot:null,  cost:3020},
+  // PC組合
+  {cat:"PC組合",  name:"S+盥洗包 三色",           ori:1760,msrp:1485,sale:1480,group:null, low:1336,  act:1299, hot:null,  cost:1150},
+  {cat:"PC組合",  name:"M+盥洗包 三色",           ori:2060,msrp:1685,sale:1680,group:null, low:1516,  act:1399, hot:null,  cost:1320},
+  {cat:"PC組合",  name:"S+M+L+盥洗包",           ori:4160,msrp:3470,sale:3199,group:null, low:3123,  act:2899, hot:null,  cost:2679},
+  // 官網組合
+  {cat:"官網組合",name:"S+S+M+M+L+L+XL+XL",     ori:9520,msrp:7205,sale:7288,group:6920, low:6484,  act:6888, hot:null,  cost:6076},
+  {cat:"官網組合",name:"S+M+L+側背包+護照包+盥洗包",ori:7410,msrp:5940,sale:5788,group:5334,low:5346, act:5599, hot:null,  cost:4699},
+  // 誠品組合
+  {cat:"誠品組合",name:"輕量 S+M+網袋三入",        ori:2550,msrp:2168,sale:2099,group:1915, low:1951,  act:1999, hot:null,  cost:1751},
+  {cat:"誠品組合",name:"輕量 S+M+鞋袋",           ori:2390,msrp:2032,sale:1999,group:1755, low:1829,  act:1899, hot:null,  cost:1597},
+];
+
+// ═══════════════════════════════════════════════════════
+// 工具函式
+// ═══════════════════════════════════════════════════════
+const fmt = n => {
+  if(n===null||n===undefined||n==="")return "—";
+  if(n==="X"||n==="x")return "✕";
+  return "NT$"+Math.round(n).toLocaleString();
+};
+// 組合活動價推算：平台售價 × 95%，無平台售價用市價 × 95%
+const calcAct = (sale, msrp) => {
+  const base = sale || msrp;
+  return base ? Math.round(base * 0.95) : null;
+};
+// 熱銷組活動價推算：平台售價 × 92%
+const calcHot = (sale, msrp) => {
+  const base = sale || msrp;
+  return base ? Math.round(base * 0.92) : null;
+};
+// 單品活動價推算：市價 × 93%
+const calcProductAct = (msrp) => msrp ? Math.round(msrp * 0.93) : null;
+
+// TAB 切換：定義已移至 script 頂部
+
+// ═══════════════════════════════════════════════════════
+// TAB 1: 計算機
+// ═══════════════════════════════════════════════════════
+const calcCats = ["全部", ...new Set(products.map(p=>p.cat))];
+let calcActiveCat = "全部";
+let selected = {};
+
+function renderCalcCats(){
+  document.getElementById("calcCatTabs").innerHTML = calcCats.map(c=>
+    `<button class="cat-tab${c===calcActiveCat?" active":""}" onclick="setCalcCat('${c}')">${c}</button>`
+  ).join("");
+}
+function setCalcCat(c){calcActiveCat=c;renderCalcCats();renderProducts();}
+
+function renderProducts(){
+  const list = calcActiveCat==="全部"?products:products.filter(p=>p.cat===calcActiveCat);
+  document.getElementById("productGrid").innerHTML = list.map(p=>{
+    const qty = selected[p.name]?selected[p.name].qty:0;
+    return `<div class="product-card${qty>0?" selected":""}">
+      <div class="pcat">${p.cat}</div>
+      <div class="pname">${p.name}</div>
+      <div class="pprice">市價 ${fmt(p.msrp)}</div>
+      <div class="qty-row">
+        <button class="qty-btn" onclick="changeQty('${p.name.replace(/'/g,"\\'")}', -1)">−</button>
+        <span class="qty-val">${qty}</span>
+        <button class="qty-btn" onclick="changeQty('${p.name.replace(/'/g,"\\'")}', 1)">＋</button>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function changeQty(name, delta){
+  const p = products.find(x=>x.name===name); if(!p) return;
+  if(!selected[name]) selected[name]={...p,qty:0};
+  selected[name].qty = Math.max(0, selected[name].qty+delta);
+  if(selected[name].qty===0) delete selected[name];
+  renderProducts(); renderSelected();
+}
+function removeItem(name){ delete selected[name]; renderProducts(); renderSelected(); }
+
+function renderSelected(){
+  const items = Object.values(selected).filter(x=>x.qty>0);
+  const sec = document.getElementById("calcSelectedSection");
+  sec.style.display = items.length===0?"none":"block";
+  if(!items.length) return;
+
+  document.getElementById("selectedList").innerHTML = items.map(item=>`
+    <div class="sel-item">
+      <div><span class="sel-name">${item.name}</span><span style="color:var(--text3);font-size:12px"> × ${item.qty}</span></div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <span class="sel-info">市價 ${fmt(item.msrp*item.qty)} ／ 售價 ${fmt(item.sale*item.qty)}</span>
+        <button class="remove-btn" onclick="removeItem('${item.name.replace(/'/g,"\\'")}')">×</button>
+      </div>
+    </div>`).join("");
+  calcResults(items);
+}
+
+function calcResults(items){
+  const actRaw = document.getElementById("actOverride").value;
+  const hotRaw = document.getElementById("hotOverride").value;
+
+  // 依據需求：
+  // 售價 = 單品平台售價加總 × 0.97
+  // 團購價 = 售價 × 0.8
+  // 最低價 = 單品最低價加總
+  // 活動價 = 單品平台售價加總 × 0.95
+  // 熱銷組活動價 = 單品平台售價加總 × 0.9
+  const sumOri   = items.reduce((s,x)=>s+x.ori *x.qty,0);
+  const sumMsrp  = items.reduce((s,x)=>s+x.msrp*x.qty,0);
+  const sumSale  = items.reduce((s,x)=>s+x.sale*x.qty,0);
+  const sumLow   = items.reduce((s,x)=>s+x.low *x.qty,0);
+  const sumCost  = items.reduce((s,x)=>s+x.cost*x.qty,0);
+
+  const oriVal   = Math.round(sumOri);
+  const msrpVal  = Math.round(sumMsrp);
+  const saleVal  = Math.round(sumSale * 0.97);
+  const groupVal = Math.round(sumSale * 0.87);
+  const minVal   = Math.round(sumLow);
+  const costVal  = Math.round(sumCost);
+  const actVal   = actRaw ? parseInt(actRaw) : Math.round(sumSale * 0.95);
+  const hotVal   = hotRaw ? parseInt(hotRaw) : Math.round(sumSale * 0.9);
+
+  const warnings = [];
+  if(actVal < costVal) warnings.push(`⚠ 活動價 ${fmt(actVal)} 低於賠本價 ${fmt(costVal)}，請確認！`);
+  if(hotVal < costVal) warnings.push(`⚠ 熱銷組活動價 ${fmt(hotVal)} 低於賠本價 ${fmt(costVal)}，請確認！`);
+  if(minVal < costVal) warnings.push(`⚠ 最低價 ${fmt(minVal)} 低於賠本價 ${fmt(costVal)}，建議調高折扣`);
+  if(groupVal < costVal) warnings.push(`⚠ 團購價 ${fmt(groupVal)} 低於賠本價 ${fmt(costVal)}，請確認！`);
+
+  const wb = document.getElementById("warningBox");
+  if(warnings.length){
+    wb.style.display="flex"; wb.className="warning-box warn";
+    wb.innerHTML=`<span>⚠</span><div>${warnings.join("<br>")}</div>`;
+  } else { wb.style.display="none"; }
+
+  const actClass = actVal < costVal ? "danger" : "";
+  const hotClass = hotVal < costVal ? "danger" : "";
+  const minClass = minVal < costVal ? "danger" : "";
+
+  document.getElementById("results").innerHTML=`
+    <div class="result-card">
+      <div class="result-label">原價</div>
+      <div class="result-value">${fmt(oriVal)}</div>
+      <div class="result-sub">單品原價加總</div>
+    </div>
+    <div class="result-card">
+      <div class="result-label">市價</div>
+      <div class="result-value">${fmt(msrpVal)}</div>
+      <div class="result-sub">單品市價加總</div>
+    </div>
+    <div class="result-card primary">
+      <div class="result-label">售價</div>
+      <div class="result-value">${fmt(saleVal)}</div>
+      <div class="result-sub">平台售價加總 × 97%</div>
+    </div>
+    <div class="result-card">
+      <div class="result-label">團購價</div>
+      <div class="result-value">${fmt(groupVal)}</div>
+      <div class="result-sub">平台售價加總 × 87%</div>
+    </div>
+    <div class="result-card ${minClass}">
+      <div class="result-label">最低價</div>
+      <div class="result-value">${fmt(minVal)}</div>
+      <div class="result-sub">單品最低價加總</div>
+    </div>
+    <div class="result-card ${actClass}">
+      <div class="result-label">活動價</div>
+      <div class="result-value">${fmt(actVal)}</div>
+      <div class="result-sub">${actRaw?"手動輸入":"平台售價加總 × 95%"}</div>
+    </div>
+    <div class="result-card ${hotClass}">
+      <div class="result-label">熱銷組活動價</div>
+      <div class="result-value">${fmt(hotVal)}</div>
+      <div class="result-sub">${hotRaw?"手動輸入":"平台售價加總 × 90%"}</div>
+    </div>
+    <div class="result-card${costVal > saleVal?" alert":""}">
+      <div class="result-label">賠本價</div>
+      <div class="result-value">${fmt(costVal)}</div>
+      <div class="result-sub">單品賠本價加總</div>
+    </div>`;
+}
+
+["actOverride","hotOverride"].forEach(id=>{
+  document.getElementById(id).addEventListener("input", renderSelected);
+});
+
+// ═══════════════════════════════════════════════════════
+// TAB 2: 查詢
+// ═══════════════════════════════════════════════════════
+const queryCats = ["全部", ...new Set(combos.map(c=>c.cat))];
+let queryActiveCat = "全部";
+
+function renderQueryCats(){
+  document.getElementById("queryCatTabs").innerHTML = queryCats.map(c=>
+    `<button class="cat-tab${c===queryActiveCat?" active":""}" onclick="setQueryCat('${c}')">${c}</button>`
+  ).join("");
+}
+function setQueryCat(c){ queryActiveCat=c; renderQueryCats(); renderTable(); }
+
+function clearQuery(){
+  queryActiveCat="全部";
+  document.getElementById("querySearch").value="";
+  renderQueryCats(); renderTable();
+}
+
+function renderTable(){
+  const kw = document.getElementById("querySearch").value.toLowerCase();
+  const filtered = combos.filter(c=>{
+    const catOk = queryActiveCat==="全部"||c.cat===queryActiveCat;
+    const kwOk  = !kw || c.name.toLowerCase().includes(kw)||c.cat.includes(kw);
+    return catOk && kwOk;
+  });
+  const tbody = document.getElementById("comboTbody");
+  if(!filtered.length){
+    tbody.innerHTML=`<tr><td colspan="10" class="no-data">查無符合的組合</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(c=>{
+    // 活動價
+    const actFill = c.act !== null && c.act !== undefined;
+    const actVal  = actFill ? c.act : calcAct(c.sale, c.msrp);
+    const actHtml = actVal === null ? '<span class="na">—</span>'
+      : `${fmt(actVal)}${!actFill?'<span class="tag-calc">推算</span>':''}`;
+
+    // 熱銷組活動價
+    const hotX    = c.hot==="X"||c.hot==="x";
+    const hotFill = c.hot !== null && c.hot !== undefined && !hotX;
+    const hotVal  = hotX ? null : (hotFill ? c.hot : calcHot(c.sale, c.msrp));
+    const hotHtml = hotX ? '✕'
+      : hotVal === null ? '<span class="na">—</span>'
+      : `${fmt(hotVal)}${!hotFill?'<span class="tag-calc">推算</span>':''}`;
+
+    // 團購價
+    const grpHtml = c.group==="X"||c.group==="x" ? '✕'
+      : c.group===null ? '<span class="tag-pending">待補</span>'
+      : fmt(c.group);
+
+    // 低於賠本價警示
+    const warnAct = c.cost && actVal && actVal < c.cost;
+    const warnHot = c.cost && hotVal && hotVal < c.cost;
+
+    return `<tr>
+      <td><span class="badge badge-blue">${c.cat}</span></td>
+      <td style="font-weight:500;min-width:180px">${c.name}</td>
+      <td>${fmt(c.ori)}</td>
+      <td>${fmt(c.msrp)}</td>
+      <td>${c.sale===null?'<span class="na">—</span>':fmt(c.sale)}</td>
+      <td>${grpHtml}</td>
+      <td>${c.low===0||c.low===null?'<span class="na">—</span>':fmt(c.low)}</td>
+      <td style="${warnAct?'color:var(--warn-text)':''}">${actHtml}</td>
+      <td style="${warnHot?'color:var(--warn-text)':''}">${hotHtml}</td>
+      <td>${c.cost?fmt(c.cost):'<span class="na">—</span>'}</td>
+    </tr>`;
+  }).join("");
+}
+
+// ═══════════════════════════════════════════════════════
+// 智慧比對
+// ═══════════════════════════════════════════════════════
+function parseComboItems(comboName) {
+  const n = comboName;
+  const isLite = /lite|輕量/i.test(n);
+  const counts = {};
+  const add = (key, cnt=1) => { counts[key] = (counts[key]||0)+cnt; };
+
+  if(isLite){
+    const s = (n.match(/\bS\b/g)||[]).length; if(s) add('Lite收納袋S',s);
+    const m = (n.match(/\bM\b/g)||[]).length; if(m) add('Lite收納袋M',m);
+    const l = (n.match(/(?<![X])L(?![L])/g)||[]).length; if(l) add('Lite收納袋L',l);
+    if(/鞋袋/.test(n)) add('Lite 鞋袋');
+    if(/網袋/.test(n)) add('Lite 網袋組');
+  } else {
+    const s = (n.match(/\bS\b/g)||[]).length; if(s) add('收納袋 S',s);
+    const m = (n.match(/\bM\b/g)||[]).length; if(m) add('收納袋 M',m);
+    const xxl = (n.match(/XXL|2XL/g)||[]).length; if(xxl) add('收納袋 XXL',xxl);
+    const xl  = (n.match(/(?<!X|2)XL/g)||[]).length - xxl; if(xl>0) add('收納袋 XL',xl);
+    const baseL = (n.match(/(?<![X2S])L(?![L])/g)||[]).length; if(baseL>0) add('收納袋 L',baseL);
+    if(/鞋袋/.test(n)) add('Lite 鞋袋');
+    if(/網袋/.test(n)) add('Lite 網袋組');
+  }
+
+  const otherRules = [
+    ['外套收納袋M',     /外套收納袋\s?M/],
+    ['外套收納袋 L',    /外套收納袋\s?L/],
+    ['多功能吊掛分隔收納袋', /吊掛/],
+    ['床底收納專用收納袋',   /床底/],
+    ['防盜機能側背包S', /側背[包]?\s?(?!L)(?=\+|包|組|$)/],
+    ['防盜機能護照包',   /護照/],
+    ['防盜機能側背包L', /側背[包]?L|側背L/],
+    ['防盜機能後背包',   /防盜機能後背|(?<!safe)(?<!plus)後背包/i],
+    ['Safeplus安心防盜後背包', /safe.*後背|後背.*safe/i],
+    ['Safeplus安心防盜護照包', /safe.*護照|護照.*safe/i],
+    ['Safeplus安心防盜側背包', /safe.*側背|側背.*safe/i],
+    ['盥洗包', /盥洗/],
+    ['半半包', /半半/],
+    ['化妝包', /化妝/],
+    ['托特包', /托特/],
+    ['折疊後背包', /折疊後背/],
+    ['折疊行李袋', /折疊行李/],
+  ];
+  for(const [key, re] of otherRules){
+    if(!counts[key] && re.test(n)) add(key);
+  }
+  return counts;
+}
+
+function matchScore(chosenMap, comboMap){
+  let inter=0, union=0;
+  const allKeys = new Set([...Object.keys(chosenMap),...Object.keys(comboMap)]);
+  for(const k of allKeys){
+    const a=chosenMap[k]||0, b=comboMap[k]||0;
+    inter+=Math.min(a,b); union+=Math.max(a,b);
+  }
+  return union===0?0:Math.round(inter/union*100);
+}
+
+const matchCats = ["全部", ...new Set(products.map(p=>p.cat))];
+let matchActiveCat = "全部";
+let matchChosen = {};
+
+function renderMatchCatTabs(){
+  document.getElementById("matchCatTabs").innerHTML = matchCats.map(c=>
+    `<button class="cat-tab${c===matchActiveCat?" active":""}" onclick="setMatchCat('${c}')">${c}</button>`
+  ).join("");
+}
+function setMatchCat(c){ matchActiveCat=c; renderMatchCatTabs(); renderMatchGrid(); }
+
+function renderMatchGrid(){
+  const list = matchActiveCat==="全部" ? products : products.filter(p=>p.cat===matchActiveCat);
+  document.getElementById("matchGrid").innerHTML = list.map(p=>{
+    const qty = matchChosen[p.name]||0;
+    const sel = qty>0;
+    return `<div class="product-card${sel?" selected":""}">
+      <div class="pcat">${p.cat}</div>
+      <div class="pname">${p.name}</div>
+      <div class="pprice">售價 ${fmt(p.sale)}</div>
+      <div class="qty-row">
+        <button class="qty-btn" onclick="changeMatchQty('${p.name.replace(/'/g,"\'")}', -1)">−</button>
+        <span class="qty-val">${qty}</span>
+        <button class="qty-btn" onclick="changeMatchQty('${p.name.replace(/'/g,"\'")}', 1)">＋</button>
+      </div>
+    </div>`;
+  }).join("");
+
+  // 自動搜尋
+  const chosen = Object.entries(matchChosen).filter(([,v])=>v>0);
+  document.getElementById("matchSummary").textContent =
+    chosen.length ? "已選："+chosen.map(([k,v])=>v>1?`${k}×${v}`:k).join("、") : "";
+  if(chosen.length > 0) doMatch();
+  else document.getElementById("matchResults").innerHTML="";
+}
+
+function changeMatchQty(name, delta){
+  const cur = matchChosen[name]||0;
+  const next = Math.max(0, cur+delta);
+  if(next===0) delete matchChosen[name];
+  else matchChosen[name]=next;
+  renderMatchGrid();
+}
+
+function clearMatch(){
+  matchChosen={};
+  matchActiveCat="全部";
+  renderMatchCatTabs();
+  renderMatchGrid();
+  document.getElementById("matchResults").innerHTML="";
+}
+
+
+
+// ═══════════════════════════════════════════════════════
+// 智慧比對：doMatch
+// ═══════════════════════════════════════════════════════
+function doMatch(){
+  const chosenEntries = Object.entries(matchChosen).filter(([,v])=>v>0);
+  if(!chosenEntries.length){
+    document.getElementById("matchResults").innerHTML='<div class="no-match">請先選擇至少一個單品</div>';
+    return;
+  }
+  const chosenMap = Object.fromEntries(chosenEntries);
+
+  const scored = combos.map(combo=>{
+    const comboMap = parseComboItems(combo.name);
+    const pct = matchScore(chosenMap, comboMap);
+    return {...combo, pct, comboMap};
+  }).filter(c=>c.pct>=80).sort((a,b)=>b.pct-a.pct);
+
+  const el = document.getElementById("matchResults");
+  if(!scored.length){
+    el.innerHTML='<div class="no-match">⚠ 找不到相似度 ≥ 80% 的組合，這可能是尚未建立的新組合</div>';
+    return;
+  }
+
+  el.innerHTML = scored.map(c=>{
+    const actFill = c.act!==null&&c.act!==undefined;
+    const actVal  = actFill?c.act:calcAct(c.sale,c.msrp);
+    const hotX    = c.hot==="X"||c.hot==="x";
+    const hotFill = c.hot!==null&&c.hot!==undefined&&!hotX;
+    const hotVal  = hotX?null:(hotFill?c.hot:calcHot(c.sale,c.msrp));
+    return `<div class="match-result-box">
+      <div class="match-result-title">📦 ${c.name}<span class="match-pct">${c.pct}% 相符</span></div>
+      <div class="match-parsed">解析：${Object.entries(c.comboMap).map(([k,v])=>v>1?k+"×"+v:k).join("、")||"—"}</div>
+      <div class="match-prices">
+        <span>分類：<b>${c.cat}</b></span>
+        <span>原價：<b>${fmt(c.ori)}</b></span>
+        <span>市價：<b>${fmt(c.msrp)}</b></span>
+        <span>平台售價：<b>${fmt(c.sale)}</b></span>
+        <span>活動價：<b>${actVal===null?"—":fmt(actVal)}${!actFill&&actVal?'<span class="tag-calc">推算</span>':''}</b></span>
+        <span>熱銷活動價：<b>${hotX?"✕":hotVal===null?"—":fmt(hotVal)}${!hotFill&&!hotX&&hotVal?'<span class="tag-calc">推算</span>':''}</b></span>
+        <span>賠本價：<b>${fmt(c.cost)}</b></span>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+// ═══════════════════════════════════════════════════════
+// 單品查詢
+// ═══════════════════════════════════════════════════════
+const prodQueryCats = ["全部", ...new Set(products.map(p=>p.cat))];
+let prodQueryActiveCat = "全部";
+
+function renderProdQueryCats(){
+  document.getElementById("prodQueryCatTabs").innerHTML = prodQueryCats.map(c=>
+    `<button class="cat-tab${c===prodQueryActiveCat?" active":""}" onclick="setProdQueryCat('${c}')">${c}</button>`
+  ).join("");
+}
+function setProdQueryCat(c){ prodQueryActiveCat=c; renderProdQueryCats(); renderProdTable(); }
+
+function clearProdQuery(){
+  prodQueryActiveCat="全部";
+  document.getElementById("prodQuerySearch").value="";
+  renderProdQueryCats(); renderProdTable();
+}
+
+function renderProdTable(){
+  const kw = document.getElementById("prodQuerySearch").value.toLowerCase();
+  const filtered = products.filter(p=>{
+    const catOk = prodQueryActiveCat==="全部"||p.cat===prodQueryActiveCat;
+    const kwOk  = !kw||p.name.toLowerCase().includes(kw)||p.cat.includes(kw);
+    return catOk && kwOk;
+  });
+  const tbody = document.getElementById("prodQueryTbody");
+  if(!filtered.length){
+    tbody.innerHTML='<tr><td colspan="9" class="no-data">查無符合的單品</td></tr>';
+    return;
+  }
+  tbody.innerHTML = filtered.map(p=>`<tr>
+    <td><span class="badge badge-blue">${p.cat}</span></td>
+    <td style="font-weight:500">${p.name}</td>
+    <td>${fmt(p.ori)}</td>
+    <td>${fmt(p.msrp)}</td>
+    <td>${fmt(p.sale)}</td>
+    <td>${fmt(p.group)}</td>
+    <td>${fmt(p.low)}</td>
+    <td>${fmt(p.act)}</td>
+    <td>${fmt(p.cost)}</td>
+  </tr>`).join("");
+}
+
+// ── 初始化 ──
+renderCalcCats(); renderProducts();
+renderProdQueryCats(); renderProdTable();
+renderQueryCats(); renderTable();
+matchChosen={}; renderMatchCatTabs(); renderMatchGrid();
 </script>
 </body>
 </html>
